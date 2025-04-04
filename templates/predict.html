@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Placement Prediction</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            font-weight: bold;
+        }
+        .description {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center">Student Placement Prediction</h2>
+        <p class="text-center">Model Selected: <strong id="selected-model"></strong></p>
+        <form id="prediction-form">
+            <div class="mb-3">
+                <label>CGPA</label>
+                <input type="number" step="0.01" class="form-control" id="cgpa" required>
+                <p class="description">Enter your cumulative GPA (out of 10).</p>
+            </div>
+            <div class="mb-3">
+                <label>Internships</label>
+                <input type="number" class="form-control" id="internships" required>
+                <p class="description">Number of internships completed.</p>
+            </div>
+            <div class="mb-3">
+                <label>Projects</label>
+                <input type="number" class="form-control" id="projects" required>
+                <p class="description">Total number of academic & personal projects.</p>
+            </div>
+            <div class="mb-3">
+                <label>Internship/Project Ratio</label>
+                <input type="number" step="0.01" class="form-control" id="internship_project_ratio" required>
+                <p class="description">Ratio of internships to projects.</p>
+            </div>
+            <div class="mb-3">
+                <label>Workshops/Certifications</label>
+                <input type="number" class="form-control" id="certifications" required>
+                <p class="description">Count of workshops/certifications attended.</p>
+            </div>
+            <div class="mb-3">
+                <label>Aptitude Test Score</label>
+                <input type="number" step="0.01" class="form-control" id="aptitude" required>
+                <p class="description">Enter your aptitude test score (out of 100).</p>
+            </div>
+            <div class="mb-3">
+                <label>Soft Skills Rating</label>
+                <input type="number" step="0.1" min="1" max="10" class="form-control" id="soft_skills" required>
+                <p class="description">Rate your soft skills (1-10).</p>
+            </div>
+            <div class="mb-3">
+                <label>Extracurricular Activities</label>
+                <select class="form-control" id="extra_curricular" required>
+                    <option value="" selected disabled>Select</option>
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                </select>
+                <p class="description">Have you participated in extracurricular activities?</p>
+            </div>
+            <div class="mb-3">
+                <label>Placement Training</label>
+                <select class="form-control" id="placement_training" required>
+                    <option value="" selected disabled>Select</option>
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                </select>
+                <p class="description">Have you attended placement training?</p>
+            </div>
+            <div class="mb-3">
+                <label>Secondary School Certificate (SSC) Marks (%)</label>
+                <input type="number" step="0.01" class="form-control" id="ssc_marks" required>
+                <p class="description">Enter your SSC (10th grade) percentage.</p>
+            </div>
+            <div class="mb-3">
+                <label>Higher Secondary Certificate (HSC) Marks (%)</label>
+                <input type="number" step="0.01" class="form-control" id="hsc_marks" required>
+                <p class="description">Enter your HSC (12th grade) percentage.</p>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Predict Placement</button>
+        </form>
+        <div id="prediction-result" class="mt-4 text-center"></div>
+    </div>
+    
+    <script>
+        $(document).ready(function() {
+            let urlParams = new URLSearchParams(window.location.search);
+            let modelName = urlParams.get('model');
+            $("#selected-model").text(modelName);
+
+            $('#prediction-form').submit(function(event) {
+                event.preventDefault();
+                let inputData = {
+                    model: modelName,
+                    features: [
+                        parseFloat($('#cgpa').val()),
+                        parseInt($('#internships').val()),
+                        parseInt($('#projects').val()),
+                        parseFloat($('#internship_project_ratio').val()), // Newly Added Input
+                        parseInt($('#certifications').val()),
+                        parseFloat($('#aptitude').val()),
+                        parseFloat($('#soft_skills').val()),
+                        parseInt($('#extra_curricular').val()),
+                        parseInt($('#placement_training').val()),
+                        parseFloat($('#ssc_marks').val()),
+                        parseFloat($('#hsc_marks').val())
+                    ]
+                };
+                
+                $.ajax({
+                    url: '/predict',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(inputData),
+                    success: function(response) {
+                        $('#prediction-result').html(
+                            `<h4>Prediction: ${response.prediction === 1 ? 'Placed' : 'Not Placed'}</h4>`
+                        );
+                    },
+                    error: function(xhr) {
+                        $('#prediction-result').html('<p class="text-danger">Error occurred while predicting.</p>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

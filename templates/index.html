@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Placement Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 50%;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        select, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .metrics {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Select a Model for Prediction</h2>
+        <select id="model-select">
+            <option value="">-- Select Model --</option>
+            {% for model in models %}
+            <option value="{{ model }}">{{ model }}</option>
+            {% endfor %}
+        </select>
+        
+        <div class="metrics" id="metrics">
+            <h3>Model Metrics</h3>
+            <p>Accuracy: <span id="accuracy"></span></p>
+            <p>Precision: <span id="precision"></span></p>
+            <p>Recall: <span id="recall"></span></p>
+            <p>F1-score: <span id="f1-score"></span></p>
+            <button id="proceed-btn">Proceed to Prediction</button>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#model-select').change(function() {
+                let selectedModel = $(this).val();
+                if (selectedModel) {
+                    $.ajax({
+                        url: '/get_metrics',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ model: selectedModel }),
+                        success: function(response) {
+                            $('#accuracy').text(response.metrics.accuracy);
+                            $('#precision').text(response.metrics.precision);
+                            $('#recall').text(response.metrics.recall);
+                            $('#f1-score').text(response.metrics.f1_score);
+                            $('#metrics').show();
+                        },
+                        error: function(xhr) {
+                            console.error("Error:", xhr.responseText);
+                        }
+                    });
+                } else {
+                    $('#metrics').hide();
+                }
+            });
+
+            $('#proceed-btn').click(function() {
+                let selectedModel = $('#model-select').val();
+                if (selectedModel) {
+                    window.location.href = `/predict_page?model=${encodeURIComponent(selectedModel)}`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
